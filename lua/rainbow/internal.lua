@@ -24,14 +24,21 @@ local callbackfn = function(bufnr)
       if node.node ~= nil then
         local color_no_ = color_no(node.node, #colors)
         local _, _, endRow, endCol = node.node:range() -- range of the capture, zero-indexed
-        vim.highlight.range(
-          bufnr,
-          nsid,
-          ("rainbowcol" .. color_no_),
-          {endRow, endCol - 1},
-          {endRow, endCol - 1},
-          "blockwise",
-          true
+        --vim.highlight.range(
+        --  bufnr,
+        --  nsid,
+        --  ("rainbowcol" .. color_no_),
+        --  {endRow, endCol - 1},
+        --  {endRow, endCol - 1},
+        --  "blockwise",
+        --  true
+        --)
+        vim.api.nvim_buf_set_extmark(
+        bufnr,
+        nsid,
+        endRow,
+        endCol - 1,
+        {end_line = endRow, end_col = endCol, hl_group = ("rainbowcol" .. color_no_), ephemeral = true}
         )
       end
     end
@@ -55,16 +62,17 @@ function M.attach(bufnr, lang)
     vim.cmd(s)
   end
 
-  callbackfn(bufnr) -- do it on intial load
-  vim.api.nvim_buf_attach( --do it on every change
-    bufnr,
-    false,
-    {
-      on_lines = function()
-        callbackfn(bufnr)
-      end
-    }
-  )
+  --callbackfn(bufnr) -- do it on intial load
+  --vim.api.nvim_buf_attach( --do it on every change
+  --  bufnr,
+  --  false,
+  --  {
+  --    on_lines = function()
+  --      callbackfn(bufnr)
+  --    end
+  --  }
+  --)
+  vim.api.nvim_set_decoration_provier(nsid, {on_line = callbackfn(bufnr)})
 end
 
 function M.detach(bufnr)
